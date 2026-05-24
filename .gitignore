@@ -1,0 +1,23 @@
+# OS artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Azure CLI local auth tokens (NEVER commit these)
+.azure/
+
+# Secrets
+*.env
+.env*
+secrets.sh
+
+# Logs
+*.log
+npm-debug.log*
