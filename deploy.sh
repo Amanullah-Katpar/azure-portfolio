@@ -67,12 +67,17 @@ success "Storage account created."
 
 # ── Step 3: Enable Static Website Hosting ─────────────────────────────────────
 info "Step 3/5 — Enabling static website hosting..."
+STORAGE_KEY=$(az storage account keys list \
+  --account-name "${STORAGE_ACCOUNT}" \
+  --resource-group "${RESOURCE_GROUP}" \
+  --query "[0].value" -o tsv)
+
 az storage blob service-properties update \
   --account-name "${STORAGE_ACCOUNT}" \
+  --account-key "${STORAGE_KEY}" \
   --static-website \
   --index-document "index.html" \
   --404-document "index.html" \
-  --auth-mode login \
   --output none
 success "Static website hosting enabled."
 
@@ -84,44 +89,44 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Upload HTML files
 az storage blob upload-batch \
   --account-name "${STORAGE_ACCOUNT}" \
+  --account-key "${STORAGE_KEY}" \
   --source "${SCRIPT_DIR}" \
   --destination "\$web" \
   --pattern "*.html" \
   --content-type "text/html" \
   --overwrite \
-  --auth-mode login \
   --output none
 
 # Upload CSS files
 az storage blob upload-batch \
   --account-name "${STORAGE_ACCOUNT}" \
+  --account-key "${STORAGE_KEY}" \
   --source "${SCRIPT_DIR}" \
   --destination "\$web" \
   --pattern "*.css" \
   --content-type "text/css" \
   --overwrite \
-  --auth-mode login \
   --output none
 
 # Upload JavaScript files
 az storage blob upload-batch \
   --account-name "${STORAGE_ACCOUNT}" \
+  --account-key "${STORAGE_KEY}" \
   --source "${SCRIPT_DIR}" \
   --destination "\$web" \
   --pattern "*.js" \
   --content-type "application/javascript" \
   --overwrite \
-  --auth-mode login \
   --output none
 
 # Upload assets (favicon, images, etc.)
 if [ -d "${SCRIPT_DIR}/assets" ]; then
   az storage blob upload-batch \
     --account-name "${STORAGE_ACCOUNT}" \
+    --account-key "${STORAGE_KEY}" \
     --source "${SCRIPT_DIR}/assets" \
     --destination "\$web/assets" \
     --overwrite \
-    --auth-mode login \
     --output none
 fi
 
