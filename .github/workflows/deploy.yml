@@ -4,97 +4,71 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:       # allows manual trigger from the GitHub Actions tab
+  workflow_dispatch:        # allows manual trigger from the GitHub Actions tab
 
 jobs:
   deploy:
-    name: Build & Deploy
+    name: Deploy to Azure Blob Storage
     runs-on: ubuntu-latest
 
     steps:
-      # ── 1. Checkout code ───────────────────────────────────────────────────
       - name: ⬇ Checkout repository
         uses: actions/checkout@v4
 
-      # ── 2. Azure login ─────────────────────────────────────────────────────
-      - name: 🔐 Login to Azure
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      # ── 3. Upload HTML ─────────────────────────────────────────────────────
       - name: 📄 Upload HTML files
         uses: azure/cli@v2
         with:
           azcliversion: latest
           inlineScript: |
             az storage blob upload-batch \
-              --account-name ${{ secrets.STORAGE_ACCOUNT }} \
+              --account-name "${{ secrets.AZURE_STORAGE_ACCOUNT }}" \
+              --account-key  "${{ secrets.AZURE_STORAGE_KEY }}" \
               --source . \
               --destination '$web' \
               --pattern "*.html" \
               --content-type "text/html" \
-              --overwrite \
-              --auth-mode login
+              --overwrite
 
-      # ── 4. Upload CSS ──────────────────────────────────────────────────────
       - name: 🎨 Upload CSS files
         uses: azure/cli@v2
         with:
           azcliversion: latest
           inlineScript: |
             az storage blob upload-batch \
-              --account-name ${{ secrets.STORAGE_ACCOUNT }} \
+              --account-name "${{ secrets.AZURE_STORAGE_ACCOUNT }}" \
+              --account-key  "${{ secrets.AZURE_STORAGE_KEY }}" \
               --source . \
               --destination '$web' \
               --pattern "*.css" \
               --content-type "text/css" \
-              --overwrite \
-              --auth-mode login
+              --overwrite
 
-      # ── 5. Upload JS ───────────────────────────────────────────────────────
       - name: ⚡ Upload JavaScript files
         uses: azure/cli@v2
         with:
           azcliversion: latest
           inlineScript: |
             az storage blob upload-batch \
-              --account-name ${{ secrets.STORAGE_ACCOUNT }} \
+              --account-name "${{ secrets.AZURE_STORAGE_ACCOUNT }}" \
+              --account-key  "${{ secrets.AZURE_STORAGE_KEY }}" \
               --source . \
               --destination '$web' \
               --pattern "*.js" \
               --content-type "application/javascript" \
-              --overwrite \
-              --auth-mode login
+              --overwrite
 
-      # ── 6. Upload assets ───────────────────────────────────────────────────
       - name: 🖼 Upload assets
         uses: azure/cli@v2
         with:
           azcliversion: latest
           inlineScript: |
             az storage blob upload-batch \
-              --account-name ${{ secrets.STORAGE_ACCOUNT }} \
+              --account-name "${{ secrets.AZURE_STORAGE_ACCOUNT }}" \
+              --account-key  "${{ secrets.AZURE_STORAGE_KEY }}" \
               --source assets \
               --destination '$web/assets' \
-              --overwrite \
-              --auth-mode login
+              --overwrite
 
-      # ── 7. Print live URL ──────────────────────────────────────────────────
       - name: 🌍 Print live URL
-        uses: azure/cli@v2
-        with:
-          azcliversion: latest
-          inlineScript: |
-            LIVE_URL=$(az storage account show \
-              --name ${{ secrets.STORAGE_ACCOUNT }} \
-              --resource-group ${{ secrets.RESOURCE_GROUP }} \
-              --query "primaryEndpoints.web" \
-              --output tsv)
-            echo "🌍 Portfolio is live at: $LIVE_URL"
-            echo "LIVE_URL=$LIVE_URL" >> $GITHUB_ENV
-
-      # ── 8. Azure logout ────────────────────────────────────────────────────
-      - name: 🔓 Azure Logout
-        run: az logout
-        if: always()
+        run: |
+          echo "🌍 Portfolio is live at: https://${{ secrets.AZURE_STORAGE_ACCOUNT }}.z13.web.core.windows.net/"
